@@ -9,17 +9,17 @@ enum State {
 	CLEAN
 }
 
-onready var _animated_sprite: AnimatedSprite = $AnimatedSprite
+@onready var _animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
-export(float) var max_pressure: float = 300.0
-export(int) var normal_frames: int = 1
-export(State) var state: int = State.NORMAL
+@export var max_pressure: float = 300.0
+@export var normal_frames: int = 1
+@export var state: State = State.NORMAL
 
 var _frame: int = 0
 var _final_frame: int = 0
 
 func _ready():
-	_final_frame = _animated_sprite.frames.get_frame_count("default")
+	_final_frame = _animated_sprite.sprite_frames.get_frame_count("default")
 
 
 func apply_pressure(p: float) -> bool:

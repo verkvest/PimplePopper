@@ -1,9 +1,9 @@
 class_name Cutter extends Node2D
 
-onready var _hint_sfx: AudioStreamPlayer2D = $hint_sfx
+@onready var _hint_sfx: AudioStreamPlayer2D = $hint_sfx
 
 var _touched
-var _space: Physics2DDirectSpaceState
+var _space: PhysicsDirectSpaceState2D
 var _lipoma
 var _ui: UI
 
@@ -12,13 +12,15 @@ func _ready():
 	_ui = get_tree().get_nodes_in_group("ui")[0]
 
 func _input(event):
+	if not (event is InputEventScreenTouch or event is InputEventScreenDrag):
+		return
 	if _ui.is_inside_container(event.position):
 		return
 	
 	if event is InputEventScreenTouch:
 		_touched = event.pressed
 		if event.pressed:
-			var points: Array = _space.intersect_point(event.position, 1, [], 0 | 1, false, true)
+			var points: Array = Query2D.point(_space, event.position, 1, 1)
 			if points.size() != 0:
 				_lipoma = points[0].collider
 		else:

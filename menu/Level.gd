@@ -15,7 +15,7 @@ func set_text (t: String) -> void:
 	$button.text = t
 
 func get_size () -> Vector2:
-	return $button.rect_size
+	return $button.size
 
 func set_enable_level (enabled: bool) -> void:
 	$button.disabled = not enabled

@@ -1,8 +1,8 @@
 extends Control
 
 
-onready var yodo1mas = $Yodo1Mas
-onready var debug_out = $CanvasLayer/Orange/DebugOut
+@onready var yodo1mas = $Yodo1Mas
+var debug_out: Label = Label.new()
 var orig_main_panel_pos
 var selection_panel_destination_pos
 
@@ -22,12 +22,15 @@ var langs = [
 ]
 
 
-onready var tutorial = $protuberance_explanation
-onready var lang_options = $SettingsPanel/VBoxContainer/LangOptions
+@onready var tutorial = $protuberance_explanation
+@onready var lang_options = $SettingsPanel/VBoxContainer/LangOptions
 
 
 func _ready():
+	Mobile.fit(self, [$Background])
 	yodo1mas.init()
+	_hide_unavailable_services()
+	_add_credits_button()
 	#yodo1mas.connect("banner_ad_loaded", self, 'on_banner_ad_loaded')
 	
 	if Global.player_data['is_ad_active'] == false:
@@ -35,11 +38,11 @@ func _ready():
 		yodo1mas.load_interstitial_ads()
 		#yodo1mas.show_banner_ad()
 	
-	orig_main_panel_pos = $Panel.rect_global_position
+	orig_main_panel_pos = $Panel.global_position
 	
-	$LevelSelectionPanel.rect_pivot_offset = $LevelSelectionPanel.rect_size / 2
-	$TutorialPanel.rect_pivot_offset = $TutorialPanel.rect_size / 2
-	$SettingsPanel.rect_pivot_offset = $SettingsPanel.rect_size / 2
+	$LevelSelectionPanel.pivot_offset = $LevelSelectionPanel.size / 2
+	$TutorialPanel.pivot_offset = $TutorialPanel.size / 2
+	$SettingsPanel.pivot_offset = $SettingsPanel.size / 2
 	
 	load_types()
 	load_languages()
@@ -63,23 +66,23 @@ func animate_main_panel(forward: bool = true):
 	var tween = get_tree().create_tween()
 	
 	if forward:
-		tween.tween_property($Panel, 'rect_position:x', -700.0, .6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-		yield(tween, "finished")
+		tween.tween_property($Panel, 'position:x', -700.0, .6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+		await tween.finished
 		animate_selection()
 	else:
-		tween.tween_property($Panel, 'rect_position:x', orig_main_panel_pos.x, .6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tween.tween_property($Panel, 'position:x', orig_main_panel_pos.x, .6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func animate_selection(forward: bool = true):
 	var tween = get_tree().create_tween()
 	
 	if forward:
-		$LevelSelectionPanel.rect_scale = Vector2.ZERO
+		$LevelSelectionPanel.scale = Vector2.ZERO
 		$LevelSelectionPanel.show()
-		tween.tween_property($LevelSelectionPanel, 'rect_scale', Vector2.ONE, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		tween.tween_property($LevelSelectionPanel, 'scale', Vector2.ONE, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	else:
-		tween.tween_property($LevelSelectionPanel, 'rect_scale', Vector2.ZERO, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-		yield(tween, "finished")
+		tween.tween_property($LevelSelectionPanel, 'scale', Vector2.ZERO, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		await tween.finished
 		animate_main_panel(false)
 
 
@@ -89,12 +92,12 @@ func animate_tut(forward):
 	
 	if forward:
 		$Panel.hide()
-		$TutorialPanel.rect_scale = Vector2.ZERO
+		$TutorialPanel.scale = Vector2.ZERO
 		$TutorialPanel.show()
-		tween.tween_property($TutorialPanel, 'rect_scale', Vector2.ONE, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		tween.tween_property($TutorialPanel, 'scale', Vector2.ONE, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	else:
-		tween.tween_property($TutorialPanel, 'rect_scale', Vector2.ZERO, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-		yield(tween, "finished")
+		tween.tween_property($TutorialPanel, 'scale', Vector2.ZERO, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		await tween.finished
 		$Panel.show()
 
 
@@ -104,12 +107,12 @@ func animate_settings(forward: bool):
 	
 	if forward:
 		$Panel.hide()
-		$SettingsPanel.rect_scale = Vector2.ZERO
+		$SettingsPanel.scale = Vector2.ZERO
 		$SettingsPanel.show()
-		tween.tween_property($SettingsPanel, 'rect_scale', Vector2.ONE, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		tween.tween_property($SettingsPanel, 'scale', Vector2.ONE, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	else:
-		tween.tween_property($SettingsPanel, 'rect_scale', Vector2.ZERO, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-		yield(tween, "finished")
+		tween.tween_property($SettingsPanel, 'scale', Vector2.ZERO, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		await tween.finished
 		$SettingsPanel.hide()
 		$Panel.show()
 
@@ -119,12 +122,12 @@ func animate_about(forward: bool):
 	
 	
 	if forward:
-		$AboutPanel.rect_scale = Vector2.ZERO
+		$AboutPanel.scale = Vector2.ZERO
 		$AboutPanel.show()
-		tween.tween_property($AboutPanel, 'rect_scale', Vector2.ONE, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		tween.tween_property($AboutPanel, 'scale', Vector2.ONE, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	else:
-		tween.tween_property($AboutPanel, 'rect_scale', Vector2.ZERO, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-		yield(tween, "finished")
+		tween.tween_property($AboutPanel, 'scale', Vector2.ZERO, 0.4).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		await tween.finished
 		$AboutPanel.hide()
 
 
@@ -133,10 +136,10 @@ func load_types():
 		child.queue_free()
 	
 	for l in Global._levels:
-		var li = load("res://menu/LevelButton.tscn").instance()
+		var li = load("res://menu/LevelButton.tscn").instantiate()
 		li.level_type = l
 		li.text = l.to_upper()
-		li.connect('clicked', self, 'on_type_select')
+		li.connect('clicked', Callable(self, 'on_type_select'))
 		$LevelSelectionPanel/CenterContainer/LevelsList.add_child(li)
 
 
@@ -145,11 +148,11 @@ func load_bodyparts():
 		child.queue_free()
 	
 	for l in Global._levels[Global.type]:
-		var b = load("res://menu/LevelButton.tscn").instance()
+		var b = load("res://menu/LevelButton.tscn").instantiate()
 		b.level_type = l['code']
 		b.text = l['name'].to_upper()
 #		b.text = 'K_CHEEK_LEVEL_BUTTON'
-		b.connect('clicked', self, 'on_level_select')
+		b.connect('clicked', Callable(self, 'on_level_select'))
 		$LevelSelectionPanel/CenterContainer/LevelsList.add_child(b)
 
 
@@ -180,7 +183,7 @@ func _on_tutorial_pressed(string: String):
 func on_level_select(string: String):
 	Global.bodypart = string
 	yodo1mas.show_interstitial_ad()
-	get_tree().change_scene("res://game.tscn")
+	get_tree().change_scene_to_file("res://game.tscn")
 
 
 func load_languages():
@@ -316,3 +319,34 @@ func _on_PlayGamesSignin_pressed():
 func _on_Leaderboards_pressed():
 	if ManagerPlayGames.playgames:
 		ManagerPlayGames.playgames.leaderboardsShowAll()
+
+
+func _hide_unavailable_services() -> void:
+	var play = ManagerPlayGames.playgames != null
+	if has_node("PlayGamesSignin"):
+		$PlayGamesSignin.visible = play
+	if has_node("Panel/Floating/HBoxContainer/Leaderboards"):
+		$Panel/Floating/HBoxContainer/Leaderboards.visible = play
+	if has_node("SettingsPanel/VBoxContainer/DisableAdsButton"):
+		$SettingsPanel/VBoxContainer/DisableAdsButton.visible = ManagerBilling.payment != null
+
+
+func _add_credits_button() -> void:
+	var button := Button.new()
+	button.name = "Credits"
+	button.text = "Credits"
+	button.custom_minimum_size = Vector2(220, 56)
+	button.focus_mode = Control.FOCUS_NONE
+	button.add_theme_font_size_override("font_size", 24)
+	button.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	button.offset_left = -110
+	button.offset_top = -76
+	button.offset_right = 110
+	button.offset_bottom = -16
+	button.pressed.connect(_on_credits_pressed)
+	add_child(button)
+
+
+func _on_credits_pressed() -> void:
+	var credits = load("res://menu/credits.tscn").instantiate()
+	add_child(credits)

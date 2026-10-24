@@ -5,7 +5,7 @@ signal placed(right)
 var _counter: int = 0
 var _fingers: Dictionary = {}
 var _protuberance
-var space_state: Physics2DDirectSpaceState
+var space_state: PhysicsDirectSpaceState2D
 var _initial_distance: float
 
 # Called when the node enters the scene tree for the first time.
@@ -33,9 +33,9 @@ func _input(event):
 			if event.index == 1:
 				var f0_position: Vector2 = $finger_cero.position
 				var f1_position: Vector2 = $finger_one.position
-				var result: Dictionary = space_state.intersect_ray(f0_position, f1_position, [], 2147483647, false, true)
+				var result: Dictionary = Query2D.ray(space_state, f0_position, f1_position, [])
 				print (result)
-				if not result.empty():
+				if not result.is_empty():
 					_protuberance = result['collider']
 					_protuberance
 					_initial_distance = (f0_position - f1_position).length()

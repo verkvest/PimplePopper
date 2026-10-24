@@ -10,10 +10,10 @@ enum State {
 	CLEAN,
 }
 
-onready var _hint = $circle_hint
-onready var _sprites = $sprites
+@onready var _hint = $circle_hint
+@onready var _sprites = $sprites
 
-export(float) var vapor_tolerance_time: float = 5.0
+@export var vapor_tolerance_time: float = 5.0
 
 var _time: float = 0.0
 var _state = State.CLOSED
@@ -22,7 +22,7 @@ var _fs: int
 
 func _ready():
 	_hint.set_color(_hint.white)
-	_fs = _sprites.frames.get_frame_count("default")
+	_fs = _sprites.sprite_frames.get_frame_count("default")
 
 func apply_vapor() -> bool:
 	if _state == State.CLOSED:

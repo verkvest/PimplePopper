@@ -5,12 +5,12 @@ android/build/
 # Visual Studio Code
 .vscode
 # Godot-specific ignores
+.godot/
 .import/
 *.import
 *.xlsx
 *.apk
 *.aab
-export_presets.cfg
 data/
 
 # Mono-specific ignores

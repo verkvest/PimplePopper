@@ -3,15 +3,15 @@ class_name HScroll
 
 const level_resource = preload("res://menu/level.tscn")
 
-onready var main = get_parent()
-onready var _hbox = $hbox
+@onready var main = get_parent()
+@onready var _hbox = $hbox
 
 signal selected_level()
 
-export(Array) var levels: Array = []
-export(float) var min_distance: float = 60.0
-export(float) var time: float = 0.5
-export(float) var min_diff_movement: float = 10.0 
+@export var levels: Array = []
+@export var min_distance: float = 60.0
+@export var time: float = 0.5
+@export var min_diff_movement: float = 10.0 
 
 var speed: float = 2.0
 var level: int = 0
@@ -32,8 +32,8 @@ func _ready():
 
 func _get_level_size() -> Vector2:
 	var relation: Vector2 = Global.get_window_relation()
-	var w: float = OS.window_size.x * relation.x
-	var h: float = OS.window_size.y * relation.y
+	var w: float = Global.view_size().x * relation.x
+	var h: float = Global.view_size().y * relation.y
 	var size: Vector2 = Vector2(w, h)
 	return size
 
@@ -42,14 +42,14 @@ func add_levels(ls: Array) -> void:
 
 func _add_levels(ls: Array) -> void:
 	for l in ls:
-		var li: Level = level_resource.instance()
-		li.connect("button_pressed", self, "_on_selected_level", [li])
+		var li: Level = level_resource.instantiate()
+		li.connect("button_pressed", Callable(self, "_on_selected_level").bind(li))
 		li.code = l["code"]
 		li.set_text(l["name"])
 #		li.rect_min_size = _get_level_size()
 		_hbox.add_child(li)
-	_hbox.rect_min_size.x = _hbox.get_child_count() * Global.get_relative_screen_size_x()
-	_hbox.rect_size = Vector2.ZERO
+	_hbox.custom_minimum_size.x = _hbox.get_child_count() * Global.get_relative_screen_size_x()
+	_hbox.size = Vector2.ZERO
 
 func remove_levels() -> void:
 	for child in _hbox.get_children():
@@ -59,19 +59,19 @@ func remove_levels() -> void:
 
 func _reset() -> void:
 	level = 0
-	_hbox.rect_position.x = 0
+	_hbox.position.x = 0
 
 func get_size() -> Vector2:
-	return _hbox.rect_size
+	return _hbox.size
 
 func _process(delta):
 	var np: float = direction.x * delta * speed
-	_hbox.rect_position.x += np
+	_hbox.position.x += np
 	# 30.0 is a  magic number because i need a "error margin" when
 	# the levels are sliding. I do not declare it as a exportable variable
 	# because i think i can find a better way to do it.
-	if abs(_hbox.rect_position.x - new_position.x) < 30.0:
-		_hbox.rect_position = new_position
+	if abs(_hbox.position.x - new_position.x) < 30.0:
+		_hbox.position = new_position
 		set_process(false)
 		set_process_input(true)
 
@@ -95,7 +95,7 @@ func _input(event):
 	elif slide and event is InputEventScreenDrag:
 		if event.index == 0:
 			var diff: float = event.position.x - old_position.x
-			_hbox.rect_position.x += diff
+			_hbox.position.x += diff
 			old_position = event.position
 
 func change_level(distance: float) -> void:
@@ -108,8 +108,8 @@ func change_level(distance: float) -> void:
 			if level - 1 >= 0:
 				level -= 1
 	new_position.x = Global.get_relative_screen_size_x() * -level
-	speed = abs(new_position.x - _hbox.rect_position.x) / time
-	direction = (new_position - _hbox.rect_position).normalized()
+	speed = abs(new_position.x - _hbox.position.x) / time
+	direction = (new_position - _hbox.position).normalized()
 	set_process(true)
 
 func _on_selected_level(plevel: Level) -> void:

@@ -1,142 +1,52 @@
 ; Engine configuration file.
-; It's best edited using the editor UI and not directly,
-; since the parameters that go here are not all obvious.
-;
-; Format:
-;   [section] ; section goes between []
-;   param=value ; assign values to parameters
+; Godot 4.7 — Pustle (mobile port of Pimple Popper)
 
-config_version=4
-
-_global_script_classes=[ {
-"base": "Area2D",
-"class": "Blackhead",
-"language": "GDScript",
-"path": "res://protuberances/Blackhead.gd"
-}, {
-"base": "Node2D",
-"class": "BodyPart",
-"language": "GDScript",
-"path": "res://bodyparts/BodyPart.gd"
-}, {
-"base": "Area2D",
-"class": "Clamp",
-"language": "GDScript",
-"path": "res://tools/Clamp.gd"
-}, {
-"base": "Node2D",
-"class": "Cutter",
-"language": "GDScript",
-"path": "res://tools/Cutter.gd"
-}, {
-"base": "Node2D",
-"class": "Cyst",
-"language": "GDScript",
-"path": "res://protuberances/Cyst.gd"
-}, {
-"base": "Node2D",
-"class": "FingerPointer",
-"language": "GDScript",
-"path": "res://tools/FingerPointer.gd"
-}, {
-"base": "Control",
-"class": "HScroll",
-"language": "GDScript",
-"path": "res://menu/HScroll.gd"
-}, {
-"base": "CenterContainer",
-"class": "Level",
-"language": "GDScript",
-"path": "res://menu/Level.gd"
-}, {
-"base": "Area2D",
-"class": "Lipoma",
-"language": "GDScript",
-"path": "res://protuberances/Lipoma.gd"
-}, {
-"base": "Node2D",
-"class": "Neddle",
-"language": "GDScript",
-"path": "res://tools/Needle.gd"
-}, {
-"base": "Node2D",
-"class": "NeedleSuture",
-"language": "GDScript",
-"path": "res://tools/NeedleSuture.gd"
-}, {
-"base": "Area2D",
-"class": "Pimple",
-"language": "GDScript",
-"path": "res://protuberances/Pimple.gd"
-}, {
-"base": "Area2D",
-"class": "PimpleNew",
-"language": "GDScript",
-"path": "res://protuberances/PimpleNew.gd"
-}, {
-"base": "Control",
-"class": "UI",
-"language": "GDScript",
-"path": "res://menu/UI.gd"
-}, {
-"base": "Node",
-"class": "Yodo1Mas",
-"language": "GDScript",
-"path": "res://tools/yodo1mas.gd"
-} ]
-_global_script_class_icons={
-"Blackhead": "",
-"BodyPart": "",
-"Clamp": "",
-"Cutter": "",
-"Cyst": "",
-"FingerPointer": "",
-"HScroll": "",
-"Level": "",
-"Lipoma": "",
-"Neddle": "",
-"NeedleSuture": "",
-"Pimple": "",
-"PimpleNew": "",
-"UI": "",
-"Yodo1Mas": ""
-}
+config_version=5
 
 [application]
 
-config/name="Pimples"
+config/name="Pustle"
+config/version="0.1.0"
+config/description="A touch game about clearing skin protuberances."
 run/main_scene="res://menu/new_main_screen.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
+Mobile="*res://mobile/Mobile.gd"
 ManagerBilling="*res://singleton/ManagerBilling.gd"
 ManagerPlayGames="*res://singleton/ManagerPlayGames.gd"
 Global="*res://Global.gd"
 Save="*res://singleton/Save.gd"
 Yodo="*res://singleton/yodo.tscn"
+Capture="*res://tools/capture.gd"
 
 [display]
 
-window/size/width=1220
-window/size/height=540
-window/dpi/allow_hidpi=true
-window/stretch/mode="2d"
-window/stretch/aspect="keep_width"
+window/size/viewport_width=1220
+window/size/viewport_height=540
+window/size/window_width_override=2340
+window/size/window_height_override=1080
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+window/ios/hide_home_indicator=true
+window/ios/hide_status_bar=true
 
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
+pointing/emulate_mouse_from_touch=true
 
-[locale]
+[internationalization]
 
-test="es"
-translations=PoolStringArray( "res://assets/i18n/translation.de.translation", "res://assets/i18n/translation.en.translation", "res://assets/i18n/translation.es.translation", "res://assets/i18n/translation.fr.translation", "res://assets/i18n/translation.ru.translation", "res://assets/i18n/translation.zh_CN.translation", "res://assets/i18n/translation.zh_TW.translation", "res://assets/i18n/translation.sr.translation", "res://assets/i18n/translation.it.translation", "res://assets/i18n/translation.pt.translation", "res://assets/i18n/translation.pt_BR.translation" )
-translation_remaps={
-"res://assets/win_title/win_en.png": PoolStringArray( "res://assets/win_title/win_de.png:de", "res://assets/win_title/won_es.png:es" )
+locale/translations=PackedStringArray("res://assets/i18n/translation.af.translation", "res://assets/i18n/translation.ar.translation", "res://assets/i18n/translation.ca.translation", "res://assets/i18n/translation.cs.translation", "res://assets/i18n/translation.da.translation", "res://assets/i18n/translation.de.translation", "res://assets/i18n/translation.el.translation", "res://assets/i18n/translation.en.translation", "res://assets/i18n/translation.es.translation", "res://assets/i18n/translation.fi.translation", "res://assets/i18n/translation.fr.translation", "res://assets/i18n/translation.he.translation", "res://assets/i18n/translation.hu.translation", "res://assets/i18n/translation.it.translation", "res://assets/i18n/translation.ja.translation", "res://assets/i18n/translation.ko.translation", "res://assets/i18n/translation.nl.translation", "res://assets/i18n/translation.nn_NO.translation", "res://assets/i18n/translation.pl.translation", "res://assets/i18n/translation.pt.translation", "res://assets/i18n/translation.pt_BR.translation", "res://assets/i18n/translation.ro.translation", "res://assets/i18n/translation.ru.translation", "res://assets/i18n/translation.si.translation", "res://assets/i18n/translation.sr.translation", "res://assets/i18n/translation.sv.translation", "res://assets/i18n/translation.tr.translation", "res://assets/i18n/translation.uk.translation", "res://assets/i18n/translation.vi.translation", "res://assets/i18n/translation.zh_CN.translation", "res://assets/i18n/translation.zh_TW.translation")
+locale/translation_remaps={
+"res://assets/win_title/win_en.png": PackedStringArray("res://assets/win_title/win_de.png:de", "res://assets/win_title/won_es.png:es")
 }
-locale_filter=[ 0, [ "de", "en", "es", "fr_FR", "ru", "zh_CN", "zh_HK" ] ]
 
 [rendering]
 
-environment/default_environment="res://default_env.tres"
+renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_environment="res://default_env.tres"

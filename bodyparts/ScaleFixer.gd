@@ -1,6 +1,6 @@
 extends Node
 
-export(NodePath) var background_path: NodePath
+@export var background_path: NodePath
 
 # Declare member variables here. Examples:
 # var a = 2
@@ -10,8 +10,8 @@ export(NodePath) var background_path: NodePath
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	var bsize: Vector2 = get_node(background_path).texture.get_size()
-	var scale_x: float = OS.window_size.x / bsize.x
-	var scale_y: float = OS.window_size.y / bsize.y
+	var scale_x: float = Global.view_size().x / bsize.x
+	var scale_y: float = Global.view_size().y / bsize.y
 	var new_scale = scale_x
 	if scale_x < scale_y:
 		new_scale = scale_y

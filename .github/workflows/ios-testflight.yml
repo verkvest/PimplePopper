@@ -1,0 +1,200 @@
+# Sign and upload the Godot iOS export to TestFlight.
+# Skips cleanly when the App Store Connect API secrets are absent.
+# A missing App Store Connect *app* record cannot be created with the API key.
+# That upload error is reported clearly and is not a project defect.
+name: ios-testflight
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+
+env:
+  TEAM_ID: 38PT254HDZ
+  BUNDLE_ID: es.verkvest.pustle
+  APP_VERSION: "0.1.0"
+  GODOT_VERSION: "4.7.2"
+  GODOT_TAG: "4.7.2-stable"
+
+jobs:
+  testflight:
+    runs-on: macos-15
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    env:
+      HAS_KEY: ${{ secrets.APPSTORE_API_KEY_P8 != '' && secrets.APPSTORE_API_KEY_ID != '' && secrets.APPSTORE_API_ISSUER_ID != '' }}
+    steps:
+      - name: Check secrets
+        run: |
+          if [ "$HAS_KEY" != "true" ]; then
+            echo "::notice::App Store Connect API key secrets are not set – skipping signing and upload."
+          fi
+
+      - uses: actions/checkout@v4
+        if: env.HAS_KEY == 'true'
+
+      - name: Tools + Xcode 26 (App Store requires the iOS 26 SDK)
+        if: env.HAS_KEY == 'true'
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -vi beta | sort -V | tail -1)
+          [ -n "$X" ] && sudo xcode-select -s "$X"
+          xcodebuild -version
+          python3 -m pip install --user pyjwt cryptography
+
+      - name: Install Godot 4.7.2 and export templates
+        if: env.HAS_KEY == 'true'
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/godot.zip "https://github.com/godotengine/godot-builds/releases/download/${GODOT_TAG}/Godot_v${GODOT_VERSION}-stable_macos.universal.zip"
+          unzip -q /tmp/godot.zip -d "$RUNNER_TEMP/godot"
+          GODOT=$(find "$RUNNER_TEMP/godot" -type f -path "*/MacOS/Godot" | head -1)
+          echo "GODOT=$GODOT" >> "$GITHUB_ENV"
+          chmod +x "$GODOT"
+          "$GODOT" --version
+          curl -fsSL -o /tmp/templates.tpz "https://github.com/godotengine/godot-builds/releases/download/${GODOT_TAG}/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          rm -rf /tmp/tpz
+          unzip -q /tmp/templates.tpz -d /tmp/tpz
+          DEST="$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$DEST"
+          cp -R /tmp/tpz/templates/. "$DEST/"
+          test -f "$DEST/version.txt"
+          test -f "$DEST/ios.zip"
+
+      - name: Import project
+        if: env.HAS_KEY == 'true'
+        run: |
+          "$GODOT" --headless --path . --import --quit
+          mkdir -p build/ios
+
+      - name: Install API key
+        if: env.HAS_KEY == 'true'
+        env:
+          APPSTORE_API_KEY_P8: ${{ secrets.APPSTORE_API_KEY_P8 }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          KEYFILE=~/.appstoreconnect/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8
+          if printf '%s' "$APPSTORE_API_KEY_P8" | grep -q "BEGIN PRIVATE KEY"; then
+            printf '%s\n' "$APPSTORE_API_KEY_P8" > "$KEYFILE"
+          else
+            printf '%s' "$APPSTORE_API_KEY_P8" | base64 --decode > "$KEYFILE"
+          fi
+          chmod 600 "$KEYFILE"
+          echo "KEYFILE=$KEYFILE" >> "$GITHUB_ENV"
+
+      - name: Export Xcode project
+        if: env.HAS_KEY == 'true'
+        run: |
+          set -euo pipefail
+          sed -i '' "s/^application\\/version=.*/application\\/version=\"${{ github.run_number }}\"/" export_presets.cfg
+          "$GODOT" --headless --path . --export-release "iOS" build/ios/Pustle.ipa
+          test -d build/ios/Pustle.xcodeproj
+          PLIST=$(find build/ios -name Info.plist | head -1)
+          echo "INFOPLIST=$PLIST" >> "$GITHUB_ENV"
+          /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$PLIST" \
+            || /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ github.run_number }}" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${APP_VERSION}" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print" "$PLIST" | head -40
+
+      - name: Register bundle id if missing
+        if: env.HAS_KEY == 'true'
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+        run: |
+          python3 - <<'PY'
+          import json, os, time, urllib.error, urllib.request
+          import jwt
+          key = open(os.environ["KEYFILE"]).read()
+          now = int(time.time())
+          token = jwt.encode(
+              {"iss": os.environ["APPSTORE_API_ISSUER_ID"], "iat": now, "exp": now + 1100, "aud": "appstoreconnect-v1"},
+              key, algorithm="ES256", headers={"kid": os.environ["APPSTORE_API_KEY_ID"]},
+          )
+          body = json.dumps({"data": {"type": "bundleIds", "attributes": {
+              "name": "Pustle", "identifier": os.environ["BUNDLE_ID"], "platform": "IOS"}}}).encode()
+          req = urllib.request.Request(
+              "https://api.appstoreconnect.apple.com/v1/bundleIds", data=body,
+              headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"})
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  print("registered bundle id", resp.status)
+          except urllib.error.HTTPError as err:
+              detail = err.read().decode()
+              if err.code == 409 or "ENTITY_ERROR" in detail or "already" in detail.lower():
+                  print("bundle id already registered")
+              else:
+                  print(detail)
+                  raise
+          PY
+
+      - name: Archive (unsigned; the team has no devices, so no development profile)
+        if: env.HAS_KEY == 'true'
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          xcodebuild -project build/ios/Pustle.xcodeproj -scheme Pustle -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/Pustle.xcarchive" \
+            -allowProvisioningUpdates -authenticationKeyPath "$KEYFILE" \
+            -authenticationKeyID "$APPSTORE_API_KEY_ID" -authenticationKeyIssuerID "$APPSTORE_API_ISSUER_ID" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            SKIP_INSTALL=NO INSTALL_PATH=/Applications \
+            archive | tee "$RUNNER_TEMP/archive.log" | tail -80
+          test ${PIPESTATUS[0]} -eq 0
+          find "$RUNNER_TEMP/Pustle.xcarchive" -maxdepth 3 | head -30
+
+      - name: Export with App Store distribution signing and upload to TestFlight
+        if: env.HAS_KEY == 'true'
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>export</string>
+            <key>teamID</key><string>${TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Pustle.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates -authenticationKeyPath "$KEYFILE" \
+            -authenticationKeyID "$APPSTORE_API_KEY_ID" -authenticationKeyIssuerID "$APPSTORE_API_ISSUER_ID"
+          ls -la "$RUNNER_TEMP/export"
+          set +e
+          xcrun altool --upload-app -t ios -f "$RUNNER_TEMP"/export/*.ipa \
+            --apiKey "$APPSTORE_API_KEY_ID" --apiIssuer "$APPSTORE_API_ISSUER_ID" 2>&1 | tee "$RUNNER_TEMP/upload.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -E -q "Cannot determine the Apple ID|No suitable application records|could not find an application|application record" "$RUNNER_TEMP/upload.log"; then
+            echo "::error::No App Store Connect app record for ${BUNDLE_ID} yet. Create it in App Store Connect → Apps → + (name Pustle, bundle id ${BUNDLE_ID}) and re-run ios-testflight. The API cannot create the app record."
+            exit 1
+          fi
+          if grep -q "ERROR" "$RUNNER_TEMP/upload.log" || [ "$status" -ne 0 ]; then
+            echo "::error::TestFlight upload failed"
+            exit 1
+          fi
+          echo "::notice::Uploaded ${BUNDLE_ID} ${APP_VERSION} (${{ github.run_number }}) to App Store Connect"
+
+      - uses: actions/upload-artifact@v4
+        if: always() && env.HAS_KEY == 'true'
+        with:
+          name: testflight-logs
+          path: |
+            ${{ runner.temp }}/archive.log
+            ${{ runner.temp }}/upload.log
+          if-no-files-found: ignore
+
+      - name: Cleanup key
+        if: always()
+        run: rm -rf ~/.appstoreconnect/private_keys

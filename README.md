@@ -9,6 +9,12 @@
         
 __Game to pop pimples using the awesome Godot Engine__
 
+# Pustle
+
+This tree is **Pustle**, a Godot 4 mobile port of [Pimple Popper](https://github.com/Crazy-Marvin/PimplePopper) by Crazy Marvin. The game stays under the upstream MIT license (see `LICENSE`). Bundle id on iPhone and Android: `es.verkvest.pustle`.
+
+UI fonts are Outfit, Exo 2, and Lilita One (SIL Open Font License). Credits, the removed fonts, Icons8, and the Godot Engine license are in `THIRD_PARTY_LICENSES.md` and on the in-game Credits screen.
+
 # Pimple Popper
 
 Pimple Popper is a game about popping pimples and removing blackheads, whiteheads, lipomas and similar stuff. Download now and feel the huge satisfaction!
