@@ -67,7 +67,7 @@ jobs:
           godot --headless --path . --import --quit
           mkdir -p build/android
           python3 - <<'PY'
-          import os, re
+          import os
           from pathlib import Path
           home = Path.home() / ".config" / "godot"
           files = list(home.glob("editor_settings-4*.tres"))
@@ -75,13 +75,25 @@ jobs:
               raise SystemExit(f"Godot did not write editor settings in {home}")
           sdk = os.environ["ANDROID_HOME"]
           java = os.environ["JAVA_HOME"]
+          wanted = {
+              "export/android/android_sdk_path": sdk,
+              "export/android/java_sdk_path": java,
+          }
           for path in files:
-              text = path.read_text()
-              updated = re.sub(r'export/android/android_sdk_path = ".*"', f'export/android/android_sdk_path = "{sdk}"', text)
-              updated = re.sub(r'export/android/java_sdk_path = ".*"', f'export/android/java_sdk_path = "{java}"', updated)
-              if updated == text:
-                  raise SystemExit(f"Android SDK keys missing from {path}")
-              path.write_text(updated)
+              lines = path.read_text().splitlines()
+              seen = set()
+              out = []
+              for line in lines:
+                  key = line.split(" = ", 1)[0]
+                  if key in wanted:
+                      out.append(f'{key} = "{wanted[key]}"')
+                      seen.add(key)
+                  else:
+                      out.append(line)
+              for key, value in wanted.items():
+                  if key not in seen:
+                      out.append(f'{key} = "{value}"')
+              path.write_text("\n".join(out) + "\n")
               print("updated", path)
           PY
 
