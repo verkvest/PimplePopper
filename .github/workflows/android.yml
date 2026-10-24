@@ -97,6 +97,28 @@ jobs:
               print("updated", path)
           PY
 
+      - name: Install the Android Gradle build template
+        run: |
+          set -euo pipefail
+          SRC="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          test -f "$SRC/android_source.zip"
+          rm -rf android/build
+          mkdir -p android/build
+          unzip -q "$SRC/android_source.zip" -d android/build
+          if [ ! -f android/build/build.gradle ]; then
+            GRADLE=$(find android/build -name build.gradle | head -1)
+            test -n "$GRADLE"
+            ROOT=$(dirname "$GRADLE")
+            tmp=$(mktemp -d)
+            mv "$ROOT"/* "$tmp"/
+            rm -rf android/build
+            mkdir -p android/build
+            mv "$tmp"/* android/build/
+          fi
+          cp "$SRC/version.txt" android/.build_version
+          test -f android/build/build.gradle
+          echo "template $(cat android/.build_version)"
+
       - name: Set version code
         run: |
           sed -i "s/^version\\/code=.*/version\\/code=${{ github.run_number }}/" export_presets.cfg

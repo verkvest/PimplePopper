@@ -22,10 +22,7 @@
 [ext_resource path="res://assets/pimple_chest/p_6/6.1.png" type="Texture2D" id=30]
 [ext_resource path="res://assets/pimple_chest/p_1/1.3.png" type="Texture2D" id=31]
 [ext_resource path="res://bodyparts/ScaleFixer.tscn" type="PackedScene" id=32]
-
-[sub_resource type="CompressedTexture2D" id=1]
-flags = 4
-load_path = "res://.import/base.png-ecaf1be295adfecabfc64bc88fdf707b.stex"
+[ext_resource path="res://assets/pimple_chest/base.png" type="Texture2D" id=33]
 
 [sub_resource type="SpriteFrames" id=2]
 animations = [ {
@@ -75,7 +72,7 @@ radius = 8.03373
 scale = Vector2( 1.92348, 1.92348 )
 
 [node name="background" type="Sprite2D" parent="."]
-texture = SubResource( 1 )
+texture = ExtResource( 33 )
 centered = false
 
 [node name="pimple_new" parent="." instance=ExtResource( 1 )]

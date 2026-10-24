@@ -61,7 +61,7 @@ func _reset() -> void:
 	level = 0
 	_hbox.position.x = 0
 
-func get_size() -> Vector2:
+func content_size() -> Vector2:
 	return _hbox.size
 
 func _process(delta):
