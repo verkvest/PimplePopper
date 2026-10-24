@@ -18,6 +18,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_B64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -88,7 +90,7 @@ jobs:
           sed -i "s/^version\\/code=.*/version\\/code=${{ github.run_number }}/" export_presets.cfg
 
       - name: Export release APK and AAB
-        if: ${{ secrets.ANDROID_KEYSTORE_B64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' }}
+        if: env.HAS_KEYSTORE == 'true'
         env:
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -103,7 +105,7 @@ jobs:
           godot --headless --path . --export-release "AndroidAAB" build/android/Pustle.aab
 
       - name: Export debug-signed APK and AAB
-        if: ${{ secrets.ANDROID_KEYSTORE_B64 == '' || secrets.ANDROID_KEYSTORE_PASSWORD == '' || secrets.ANDROID_KEY_ALIAS == '' }}
+        if: env.HAS_KEYSTORE != 'true'
         env:
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
