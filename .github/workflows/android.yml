@@ -161,42 +161,23 @@ jobs:
         run: |
           set -euo pipefail
           AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort | tail -1)
-          AAPT2=$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort | tail -1)
-          echo "using $AAPT and $AAPT2"
+          echo "using $AAPT"
           # aapt prints the badging and can still exit 1 on a non-fatal attribute warning
           set +e
           "$AAPT" dump badging build/android/Pustle.apk > /tmp/badging.txt 2>&1
+          status=$?
           set -e
+          echo "aapt badging exit ${status}"
           grep "targetSdkVersion" /tmp/badging.txt
           grep -q "targetSdkVersion:'36'" /tmp/badging.txt
           test -f build/android/Pustle.aab
-          rm -rf /tmp/aab && mkdir -p /tmp/aab
-          unzip -q build/android/Pustle.aab -d /tmp/aab
-          MANIFEST=$(find /tmp/aab -name AndroidManifest.xml | head -1)
-          test -n "$MANIFEST"
-          echo "manifest $MANIFEST"
-          set +e
-          "$AAPT" dump xmltree "$MANIFEST" > /tmp/aab-manifest.txt 2>&1
-          if ! grep -q "targetSdkVersion" /tmp/aab-manifest.txt; then
-            "$AAPT2" dump xmltree "$MANIFEST" > /tmp/aab-manifest.txt 2>&1
-          fi
-          set -e
+          curl -fsSL -o "$RUNNER_TEMP/bundletool.jar" \
+            "https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar"
+          java -jar "$RUNNER_TEMP/bundletool.jar" dump manifest \
+            --bundle build/android/Pustle.aab > /tmp/aab-manifest.txt
           grep "targetSdkVersion" /tmp/aab-manifest.txt
-          python3 - <<'PY'
-          import pathlib, re, sys
-          text = pathlib.Path("/tmp/aab-manifest.txt").read_text(errors="replace")
-          lines = [ln for ln in text.splitlines() if "targetSdkVersion" in ln]
-          print("\n".join(lines))
-          ok = any(
-              re.search(r"\(type 0x10\)0x24\b", ln)
-              or re.search(r"""targetSdkVersion=["']36["']""", ln)
-              or "targetSdkVersion:'36'" in ln
-              for ln in lines
-          )
-          if not ok:
-              sys.exit("AAB targetSdk is not 36")
-          print("AAB targetSdk 36 confirmed")
-          PY
+          grep -q 'android:targetSdkVersion="36"' /tmp/aab-manifest.txt
+          echo "AAB targetSdk 36 confirmed"
           ls -lh build/android
 
       - uses: actions/upload-artifact@v4
