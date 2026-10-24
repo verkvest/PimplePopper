@@ -161,17 +161,42 @@ jobs:
         run: |
           set -euo pipefail
           AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort | tail -1)
-          echo "using $AAPT"
-          "$AAPT" dump badging build/android/Pustle.apk | tee /tmp/badging.txt
+          AAPT2=$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort | tail -1)
+          echo "using $AAPT and $AAPT2"
+          # aapt prints the badging and can still exit 1 on a non-fatal attribute warning
+          set +e
+          "$AAPT" dump badging build/android/Pustle.apk > /tmp/badging.txt 2>&1
+          set -e
+          grep "targetSdkVersion" /tmp/badging.txt
           grep -q "targetSdkVersion:'36'" /tmp/badging.txt
-          if [ -f build/android/Pustle.aab ]; then
-            rm -rf /tmp/aab && mkdir -p /tmp/aab
-            unzip -q build/android/Pustle.aab -d /tmp/aab
-            AAPT2=$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort | tail -1)
-            "$AAPT2" dump xmltree /tmp/aab/base/manifest/AndroidManifest.xml --file AndroidManifest.xml | tee /tmp/aab-manifest.txt
-            grep -q "targetSdkVersion" /tmp/aab-manifest.txt
-            grep -q "(type 0x10)0x24" /tmp/aab-manifest.txt || grep -q "36" /tmp/aab-manifest.txt
+          test -f build/android/Pustle.aab
+          rm -rf /tmp/aab && mkdir -p /tmp/aab
+          unzip -q build/android/Pustle.aab -d /tmp/aab
+          MANIFEST=$(find /tmp/aab -name AndroidManifest.xml | head -1)
+          test -n "$MANIFEST"
+          echo "manifest $MANIFEST"
+          set +e
+          "$AAPT" dump xmltree "$MANIFEST" > /tmp/aab-manifest.txt 2>&1
+          if ! grep -q "targetSdkVersion" /tmp/aab-manifest.txt; then
+            "$AAPT2" dump xmltree "$MANIFEST" > /tmp/aab-manifest.txt 2>&1
           fi
+          set -e
+          grep "targetSdkVersion" /tmp/aab-manifest.txt
+          python3 - <<'PY'
+          import pathlib, re, sys
+          text = pathlib.Path("/tmp/aab-manifest.txt").read_text(errors="replace")
+          lines = [ln for ln in text.splitlines() if "targetSdkVersion" in ln]
+          print("\n".join(lines))
+          ok = any(
+              re.search(r"\(type 0x10\)0x24\b", ln)
+              or re.search(r"""targetSdkVersion=["']36["']""", ln)
+              or "targetSdkVersion:'36'" in ln
+              for ln in lines
+          )
+          if not ok:
+              sys.exit("AAB targetSdk is not 36")
+          print("AAB targetSdk 36 confirmed")
+          PY
           ls -lh build/android
 
       - uses: actions/upload-artifact@v4
