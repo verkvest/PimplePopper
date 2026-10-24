@@ -9,10 +9,10 @@ enum State {
 	CLEAN
 }
 
-onready var _sprites: AnimatedSprite = get_parent().get_node("sprites")
-onready var _cirecle_hint = $circle_hint
+@onready var _sprites: AnimatedSprite2D = get_parent().get_node("sprites")
+@onready var _cirecle_hint = $circle_hint
 
-export(int, 20, 100) var amount: int = 30
+@export var amount: int = 30 # (int, 20, 100)
 
 var _initial_amount: int
 var _fs: int
@@ -22,7 +22,7 @@ var _state = State.NORMAL
 func _ready():
 	_cirecle_hint.set_color(_cirecle_hint.white)
 	_initial_amount = amount
-	_fs = _sprites.frames.get_frame_count("default")
+	_fs = _sprites.sprite_frames.get_frame_count("default")
 
 # Returns true if the cyst is empty, false otherwise
 func extract() -> int:

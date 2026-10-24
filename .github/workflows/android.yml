@@ -1,0 +1,217 @@
+# Release APK and AAB for Pustle. targetSdk 36.
+# Signs with the release keystore when those secrets exist; otherwise a debug-signed APK (and AAB).
+name: android
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_TAG: "4.7.2-stable"
+  ANDROID_HOME: /opt/android-sdk
+  ANDROID_SDK_ROOT: /opt/android-sdk
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_B64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Godot 4.7.2 and export templates
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y unzip wget
+          curl -fsSL -o /tmp/godot.zip "https://github.com/godotengine/godot-builds/releases/download/${GODOT_TAG}/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d "$RUNNER_TEMP/godot"
+          GODOT=$(find "$RUNNER_TEMP/godot" -type f -name "Godot*" -executable | head -1)
+          sudo mv "$GODOT" /usr/local/bin/godot
+          chmod +x /usr/local/bin/godot
+          godot --version
+          curl -fsSL -o /tmp/templates.tpz "https://github.com/godotengine/godot-builds/releases/download/${GODOT_TAG}/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          rm -rf /tmp/tpz
+          unzip -q /tmp/templates.tpz -d /tmp/tpz
+          DEST="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$DEST"
+          cp -R /tmp/tpz/templates/. "$DEST/"
+          test -f "$DEST/version.txt"
+          test -f "$DEST/android_release.apk"
+
+      - name: Android SDK (platform 36, build-tools 36.1.0, NDK 29)
+        run: |
+          set -euo pipefail
+          sudo mkdir -p "$ANDROID_HOME/cmdline-tools"
+          sudo chown -R "$USER" "$ANDROID_HOME"
+          curl -fsSL -o /tmp/cmdtools.zip "https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip"
+          rm -rf /tmp/cmdtools
+          unzip -q /tmp/cmdtools.zip -d /tmp/cmdtools
+          rm -rf "$ANDROID_HOME/cmdline-tools/latest"
+          mv /tmp/cmdtools/cmdline-tools "$ANDROID_HOME/cmdline-tools/latest"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platforms;android-36" "build-tools;36.1.0" "ndk;29.0.14206865" "platform-tools"
+
+      - name: Import project
+        run: |
+          godot --headless --path . --import --quit
+          mkdir -p build/android
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          home = Path.home() / ".config" / "godot"
+          files = list(home.glob("editor_settings-4*.tres"))
+          if not files:
+              raise SystemExit(f"Godot did not write editor settings in {home}")
+          sdk = os.environ["ANDROID_HOME"]
+          java = os.environ["JAVA_HOME"]
+          wanted = {
+              "export/android/android_sdk_path": sdk,
+              "export/android/java_sdk_path": java,
+          }
+          for path in files:
+              lines = path.read_text().splitlines()
+              seen = set()
+              out = []
+              for line in lines:
+                  key = line.split(" = ", 1)[0]
+                  if key in wanted:
+                      out.append(f'{key} = "{wanted[key]}"')
+                      seen.add(key)
+                  else:
+                      out.append(line)
+              for key, value in wanted.items():
+                  if key not in seen:
+                      out.append(f'{key} = "{value}"')
+              path.write_text("\n".join(out) + "\n")
+              print("updated", path)
+          PY
+
+      - name: Install the Android Gradle build template
+        run: |
+          set -euo pipefail
+          SRC="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          test -f "$SRC/android_source.zip"
+          rm -rf android/build
+          mkdir -p android/build
+          unzip -q "$SRC/android_source.zip" -d android/build
+          if [ ! -f android/build/build.gradle ]; then
+            GRADLE=$(find android/build -name build.gradle | head -1)
+            test -n "$GRADLE"
+            ROOT=$(dirname "$GRADLE")
+            tmp=$(mktemp -d)
+            mv "$ROOT"/* "$tmp"/
+            rm -rf android/build
+            mkdir -p android/build
+            mv "$tmp"/* android/build/
+          fi
+          cp "$SRC/version.txt" android/.build_version
+          test -f android/build/build.gradle
+          echo "template $(cat android/.build_version)"
+
+      - name: Set version code
+        run: |
+          sed -i "s/^version\\/code=.*/version\\/code=${{ github.run_number }}/" export_presets.cfg
+
+      - name: Export release APK and AAB
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          echo "$ANDROID_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          export GODOT_ANDROID_KEYSTORE_RELEASE_PATH="$RUNNER_TEMP/release.keystore"
+          export GODOT_ANDROID_KEYSTORE_RELEASE_USER="$ANDROID_KEY_ALIAS"
+          export GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD"
+          godot --headless --path . --export-release "Android" build/android/Pustle.apk
+          godot --headless --path . --export-release "AndroidAAB" build/android/Pustle.aab
+
+      - name: Export debug-signed APK and AAB
+        if: env.HAS_KEYSTORE != 'true'
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          echo "::notice::Release keystore secrets are absent — building a debug-signed APK and AAB."
+          keytool -genkeypair -keystore "$RUNNER_TEMP/debug.keystore" -alias androiddebugkey \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$RUNNER_TEMP/debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+          godot --headless --path . --export-debug "Android" build/android/Pustle.apk
+          godot --headless --path . --export-debug "AndroidAAB" build/android/Pustle.aab
+
+      - name: Require targetSdk 36
+        run: |
+          set -euo pipefail
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort | tail -1)
+          echo "using $AAPT"
+          # aapt prints the badging and can still exit 1 on a non-fatal attribute warning
+          set +e
+          "$AAPT" dump badging build/android/Pustle.apk > /tmp/badging.txt 2>&1
+          status=$?
+          set -e
+          echo "aapt badging exit ${status}"
+          grep "targetSdkVersion" /tmp/badging.txt
+          grep -q "targetSdkVersion:'36'" /tmp/badging.txt
+          test -f build/android/Pustle.aab
+          curl -fsSL -o "$RUNNER_TEMP/bundletool.jar" \
+            "https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar"
+          java -jar "$RUNNER_TEMP/bundletool.jar" dump manifest \
+            --bundle build/android/Pustle.aab > /tmp/aab-manifest.txt
+          grep "targetSdkVersion" /tmp/aab-manifest.txt
+          grep -q 'android:targetSdkVersion="36"' /tmp/aab-manifest.txt
+          echo "AAB targetSdk 36 confirmed"
+          ls -lh build/android
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pustle-android
+          path: |
+            build/android/Pustle.apk
+            build/android/Pustle.aab
+          if-no-files-found: error
+
+  screenshots:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y unzip xvfb libgl1-mesa-dri libgl1
+          curl -fsSL -o /tmp/godot.zip "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          GODOT=$(find /tmp/godot -type f -name "Godot*" -executable | head -1)
+          sudo mv "$GODOT" /usr/local/bin/godot
+          chmod +x /usr/local/bin/godot
+      - name: Capture phone-viewport menu and gameplay
+        run: |
+          mkdir -p shots
+          xvfb-run -a -s "-screen 0 2340x1080x24" godot --display-driver x11 --rendering-driver opengl3 --rendering-method gl_compatibility --path . -- --shot "$PWD/shots"
+          ls -lh shots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phone-screenshots
+          path: shots/*.png
+          if-no-files-found: ignore

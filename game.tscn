@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=2]
+[gd_scene load_steps=30 format=2]
 
 [ext_resource path="res://menu/UI.gd" type="Script" id=1]
 [ext_resource path="res://tools/hand.tscn" type="PackedScene" id=2]
@@ -7,44 +7,41 @@
 [ext_resource path="res://tools/Tools.gd" type="Script" id=5]
 [ext_resource path="res://tools/Handkerchief.gd" type="Script" id=6]
 [ext_resource path="res://tools/cutter.tscn" type="PackedScene" id=7]
-[ext_resource path="res://assets/fonts/NoirPro-SemiBold.otf" type="DynamicFontData" id=8]
+[ext_resource path="res://assets/fonts/Outfit-SemiBold.ttf" type="FontFile" id=8]
 [ext_resource path="res://assets/themes/menu.tres" type="Theme" id=9]
 [ext_resource path="res://menu/game_buttons.tres" type="ButtonGroup" id=10]
 [ext_resource path="res://tools/anaesthetic.tscn" type="PackedScene" id=11]
 [ext_resource path="res://bodyparts/BodyPart.gd" type="Script" id=12]
-[ext_resource path="res://assets/blackscreen.png" type="Texture" id=13]
+[ext_resource path="res://assets/blackscreen.png" type="Texture2D" id=13]
 [ext_resource path="res://tools/needle_suture.tscn" type="PackedScene" id=14]
 [ext_resource path="res://menu/finish_game_popup.tscn" type="PackedScene" id=15]
 [ext_resource path="res://tools/vapor.tscn" type="PackedScene" id=16]
 [ext_resource path="res://tools/comedone_extraction_tool.tscn" type="PackedScene" id=17]
-[ext_resource path="res://assets/styles/icons/four.png" type="Texture" id=18]
-[ext_resource path="res://assets/styles/icons/condensation.png" type="Texture" id=19]
-[ext_resource path="res://assets/styles/icons/handkerchief (1).png" type="Texture" id=20]
-[ext_resource path="res://assets/styles/icons/dentist-tools.png" type="Texture" id=21]
-[ext_resource path="res://assets/styles/icons/needle.png" type="Texture" id=22]
-[ext_resource path="res://assets/styles/icons/syringe.png" type="Texture" id=23]
-[ext_resource path="res://assets/styles/icons/scissors.png" type="Texture" id=24]
-[ext_resource path="res://assets/styles/icons/surgery.png" type="Texture" id=25]
+[ext_resource path="res://assets/styles/icons/four.png" type="Texture2D" id=18]
+[ext_resource path="res://assets/styles/icons/condensation.png" type="Texture2D" id=19]
+[ext_resource path="res://assets/styles/icons/handkerchief (1).png" type="Texture2D" id=20]
+[ext_resource path="res://assets/styles/icons/dentist-tools.png" type="Texture2D" id=21]
+[ext_resource path="res://assets/styles/icons/needle.png" type="Texture2D" id=22]
+[ext_resource path="res://assets/styles/icons/syringe.png" type="Texture2D" id=23]
+[ext_resource path="res://assets/styles/icons/scissors.png" type="Texture2D" id=24]
+[ext_resource path="res://assets/styles/icons/surgery.png" type="Texture2D" id=25]
 [ext_resource path="res://assets/styles/scroll_bar_remove.tres" type="Theme" id=26]
 
-[sub_resource type="DynamicFont" id=1]
-size = 30
-font_data = ExtResource( 8 )
-
 [sub_resource type="Theme" id=2]
-default_font = SubResource( 1 )
+default_font = ExtResource( 8 )
+default_font_size = 30
 
 [sub_resource type="Animation" id=3]
 resource_name = "fade_in"
 tracks/0/type = "value"
-tracks/0/path = NodePath("Sprite:modulate")
+tracks/0/path = NodePath("Sprite2D:modulate")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 1 ),
-"transitions": PoolRealArray( 1, 1 ),
+"times": PackedFloat32Array( 0, 1 ),
+"transitions": PackedFloat32Array( 1, 1 ),
 "update": 0,
 "values": [ Color( 1, 1, 1, 0 ), Color( 1, 1, 1, 1 ) ]
 }
@@ -52,14 +49,14 @@ tracks/0/keys = {
 [sub_resource type="Animation" id=4]
 resource_name = "fade_out"
 tracks/0/type = "value"
-tracks/0/path = NodePath("Sprite:modulate")
+tracks/0/path = NodePath("Sprite2D:modulate")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 1 ),
-"transitions": PoolRealArray( 1, 1 ),
+"times": PackedFloat32Array( 0, 1 ),
+"transitions": PackedFloat32Array( 1, 1 ),
 "update": 0,
 "values": [ Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 0 ) ]
 }
@@ -67,10 +64,10 @@ tracks/0/keys = {
 [node name="game" type="Node"]
 script = ExtResource( 3 )
 tools_per_type = {
-"blackhead": PoolStringArray( "vapor", "comedone_extraction_tool", "handkerchief" ),
-"cyst": PoolStringArray( "needle", "handkerchief" ),
-"lipoma": PoolStringArray( "anaesthetic", "hand", "suture", "cutter" ),
-"pimple": PoolStringArray( "hand", "handkerchief" )
+"blackhead": PackedStringArray( "vapor", "comedone_extraction_tool", "handkerchief" ),
+"cyst": PackedStringArray( "needle", "handkerchief" ),
+"lipoma": PackedStringArray( "anaesthetic", "hand", "suture", "cutter" ),
+"pimple": PackedStringArray( "hand", "handkerchief" )
 }
 _buttons = ExtResource( 10 )
 
@@ -89,18 +86,18 @@ script = ExtResource( 1 )
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_top = -85.0
-margin_right = -10.0
-margin_bottom = -25.0
+offset_top = -85.0
+offset_right = -10.0
+offset_bottom = -25.0
 alignment = 2
 
 [node name="back" type="Button" parent="UI/bottons_container"]
-margin_left = 481.0
-margin_right = 870.0
-margin_bottom = 60.0
-rect_min_size = Vector2( 100, 60 )
+offset_left = 481.0
+offset_right = 870.0
+offset_bottom = 60.0
+custom_minimum_size = Vector2( 100, 60 )
 focus_mode = 0
-enabled_focus_mode = 0
+focus_mode = 0
 group = ExtResource( 10 )
 text = "K_EXIT_GAME_BUTTON"
 __meta__ = {
@@ -108,12 +105,12 @@ __meta__ = {
 }
 
 [node name="hint" type="Button" parent="UI/bottons_container"]
-margin_left = 874.0
-margin_right = 1210.0
-margin_bottom = 60.0
-rect_min_size = Vector2( 100, 60 )
+offset_left = 874.0
+offset_right = 1210.0
+offset_bottom = 60.0
+custom_minimum_size = Vector2( 100, 60 )
 focus_mode = 0
-enabled_focus_mode = 0
+focus_mode = 0
 group = ExtResource( 10 )
 text = "K_HINT_BUTTON"
 __meta__ = {
@@ -122,177 +119,177 @@ __meta__ = {
 
 [node name="scroll" type="ScrollContainer" parent="UI"]
 anchor_bottom = 1.0
-margin_right = 273.0
-margin_bottom = 1.0
+offset_right = 273.0
+offset_bottom = 1.0
 theme = ExtResource( 26 )
 follow_focus = true
 scroll_horizontal_enabled = false
 scroll_deadzone = 100
 
 [node name="tools" type="VBoxContainer" parent="UI/scroll"]
-margin_left = 20.0
-margin_top = 20.0
-margin_right = 584.0
-margin_bottom = 640.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 584.0
+offset_bottom = 640.0
 mouse_filter = 2
 theme = SubResource( 2 )
-custom_constants/separation = 20
+theme_override_constants/separation = 20
 alignment = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="hand" type="Button" parent="UI/scroll/tools"]
-margin_right = 564.0
-margin_bottom = 60.0
-rect_min_size = Vector2( 0, 60 )
+offset_right = 564.0
+offset_bottom = 60.0
+custom_minimum_size = Vector2( 0, 60 )
 focus_mode = 0
-enabled_focus_mode = 0
+focus_mode = 0
 group = ExtResource( 10 )
 text = "K_HAND_TOOL"
 
 [node name="TextureRect" type="TextureRect" parent="UI/scroll/tools/hand"]
-margin_left = 19.0
-margin_top = 11.0
-margin_right = 59.0
-margin_bottom = 51.0
+offset_left = 19.0
+offset_top = 11.0
+offset_right = 59.0
+offset_bottom = 51.0
 texture = ExtResource( 18 )
-expand = true
+expand_mode = 1
 stretch_mode = 6
 
 [node name="handkerchief" type="Button" parent="UI/scroll/tools"]
-margin_top = 80.0
-margin_right = 564.0
-margin_bottom = 140.0
-rect_min_size = Vector2( 220, 60 )
+offset_top = 80.0
+offset_right = 564.0
+offset_bottom = 140.0
+custom_minimum_size = Vector2( 220, 60 )
 focus_mode = 0
-enabled_focus_mode = 0
+focus_mode = 0
 group = ExtResource( 10 )
 text = "K_HANDKERCHIEF_TOOL"
 
 [node name="TextureRect" type="TextureRect" parent="UI/scroll/tools/handkerchief"]
-margin_left = 19.0
-margin_top = 11.0
-margin_right = 59.0
-margin_bottom = 51.0
+offset_left = 19.0
+offset_top = 11.0
+offset_right = 59.0
+offset_bottom = 51.0
 texture = ExtResource( 20 )
-expand = true
+expand_mode = 1
 stretch_mode = 6
 
 [node name="vapor" type="Button" parent="UI/scroll/tools"]
-margin_top = 160.0
-margin_right = 564.0
-margin_bottom = 220.0
-rect_min_size = Vector2( 220, 60 )
-rect_pivot_offset = Vector2( 171, -69 )
+offset_top = 160.0
+offset_right = 564.0
+offset_bottom = 220.0
+custom_minimum_size = Vector2( 220, 60 )
+pivot_offset = Vector2( 171, -69 )
 focus_mode = 0
-enabled_focus_mode = 0
+focus_mode = 0
 group = ExtResource( 10 )
 text = "K_VAPOR_TOOL"
 
 [node name="TextureRect" type="TextureRect" parent="UI/scroll/tools/vapor"]
-margin_left = 19.0
-margin_top = 11.0
-margin_right = 59.0
-margin_bottom = 51.0
+offset_left = 19.0
+offset_top = 11.0
+offset_right = 59.0
+offset_bottom = 51.0
 texture = ExtResource( 19 )
-expand = true
+expand_mode = 1
 stretch_mode = 6
 
 [node name="comedone_extraction_tool" type="Button" parent="UI/scroll/tools"]
-margin_top = 240.0
-margin_right = 564.0
-margin_bottom = 300.0
-rect_min_size = Vector2( 220, 60 )
-rect_pivot_offset = Vector2( -460, -273 )
+offset_top = 240.0
+offset_right = 564.0
+offset_bottom = 300.0
+custom_minimum_size = Vector2( 220, 60 )
+pivot_offset = Vector2( -460, -273 )
 focus_mode = 0
-enabled_focus_mode = 0
+focus_mode = 0
 group = ExtResource( 10 )
 text = "K_COMEDONE_TOOL"
 
 [node name="TextureRect" type="TextureRect" parent="UI/scroll/tools/comedone_extraction_tool"]
-margin_left = 19.0
-margin_top = 11.0
-margin_right = 59.0
-margin_bottom = 51.0
+offset_left = 19.0
+offset_top = 11.0
+offset_right = 59.0
+offset_bottom = 51.0
 texture = ExtResource( 21 )
-expand = true
+expand_mode = 1
 stretch_mode = 6
 
 [node name="needle" type="Button" parent="UI/scroll/tools"]
-margin_top = 320.0
-margin_right = 564.0
-margin_bottom = 380.0
-rect_min_size = Vector2( 220, 60 )
+offset_top = 320.0
+offset_right = 564.0
+offset_bottom = 380.0
+custom_minimum_size = Vector2( 220, 60 )
 focus_mode = 0
-enabled_focus_mode = 0
+focus_mode = 0
 group = ExtResource( 10 )
 text = "K_NEEDLE_TOOL"
 
 [node name="TextureRect" type="TextureRect" parent="UI/scroll/tools/needle"]
-margin_left = 19.0
-margin_top = 11.0
-margin_right = 59.0
-margin_bottom = 51.0
+offset_left = 19.0
+offset_top = 11.0
+offset_right = 59.0
+offset_bottom = 51.0
 texture = ExtResource( 23 )
-expand = true
+expand_mode = 1
 stretch_mode = 6
 
 [node name="anaesthetic" type="Button" parent="UI/scroll/tools"]
-margin_top = 400.0
-margin_right = 564.0
-margin_bottom = 460.0
-rect_min_size = Vector2( 220, 60 )
+offset_top = 400.0
+offset_right = 564.0
+offset_bottom = 460.0
+custom_minimum_size = Vector2( 220, 60 )
 focus_mode = 0
-enabled_focus_mode = 0
+focus_mode = 0
 group = ExtResource( 10 )
 text = "K_ANESTHETIC_TOOL"
 
 [node name="TextureRect" type="TextureRect" parent="UI/scroll/tools/anaesthetic"]
-margin_left = 19.0
-margin_top = 11.0
-margin_right = 59.0
-margin_bottom = 51.0
+offset_left = 19.0
+offset_top = 11.0
+offset_right = 59.0
+offset_bottom = 51.0
 texture = ExtResource( 22 )
-expand = true
+expand_mode = 1
 stretch_mode = 6
 
 [node name="suture" type="Button" parent="UI/scroll/tools"]
-margin_top = 480.0
-margin_right = 564.0
-margin_bottom = 540.0
-rect_min_size = Vector2( 220, 60 )
+offset_top = 480.0
+offset_right = 564.0
+offset_bottom = 540.0
+custom_minimum_size = Vector2( 220, 60 )
 focus_mode = 0
-enabled_focus_mode = 0
+focus_mode = 0
 group = ExtResource( 10 )
 text = "K_SUTURE_TOOL"
 
 [node name="TextureRect" type="TextureRect" parent="UI/scroll/tools/suture"]
-margin_left = 19.0
-margin_top = 11.0
-margin_right = 59.0
-margin_bottom = 51.0
+offset_left = 19.0
+offset_top = 11.0
+offset_right = 59.0
+offset_bottom = 51.0
 texture = ExtResource( 25 )
-expand = true
+expand_mode = 1
 stretch_mode = 6
 
 [node name="cutter" type="Button" parent="UI/scroll/tools"]
-margin_top = 560.0
-margin_right = 564.0
-margin_bottom = 620.0
-rect_min_size = Vector2( 220, 60 )
+offset_top = 560.0
+offset_right = 564.0
+offset_bottom = 620.0
+custom_minimum_size = Vector2( 220, 60 )
 focus_mode = 0
-enabled_focus_mode = 0
+focus_mode = 0
 group = ExtResource( 10 )
 text = "K_CUTTER_TOOL"
 
 [node name="TextureRect" type="TextureRect" parent="UI/scroll/tools/cutter"]
-margin_left = 19.0
-margin_top = 11.0
-margin_right = 59.0
-margin_bottom = 51.0
+offset_left = 19.0
+offset_top = 11.0
+offset_right = 59.0
+offset_bottom = 51.0
 texture = ExtResource( 24 )
-expand = true
+expand_mode = 1
 stretch_mode = 6
 
 [node name="tools" type="Node" parent="."]
@@ -319,7 +316,7 @@ position = Vector2( -368.583, -302.658 )
 [node name="timer" type="Timer" parent="."]
 wait_time = 2.0
 
-[node name="Sprite" type="Sprite" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="."]
 modulate = Color( 1, 1, 1, 0 )
 texture = ExtResource( 13 )
 centered = false
@@ -332,10 +329,10 @@ anims/fade_in = SubResource( 3 )
 anims/fade_out = SubResource( 4 )
 
 [node name="finish_game_popup" parent="." instance=ExtResource( 15 )]
-margin_left = -1639.15
-margin_top = -795.601
-margin_right = -1639.15
-margin_bottom = -795.601
+offset_left = -1639.15
+offset_top = -795.601
+offset_right = -1639.15
+offset_bottom = -795.601
 initial_position = Vector2( -1000, -1000 )
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]

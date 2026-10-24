@@ -7,23 +7,23 @@ enum VideoType {
 	LIPOMA
 }
 
-onready var pimple_video_resource = load("res://assets/videos/pimple-pop-sample.ogv")
-onready var blackhead_video_resource = load("res://assets/videos/blackhead-sample.ogv")
-onready var cyst_video_resource = load("res://assets/videos/cyst-sample.ogv")
-onready var lipoma_video_resource = load("res://assets/videos/lipoma-sample.ogv")
+@onready var pimple_video_resource = load("res://assets/videos/pimple-pop-sample.ogv")
+@onready var blackhead_video_resource = load("res://assets/videos/blackhead-sample.ogv")
+@onready var cyst_video_resource = load("res://assets/videos/cyst-sample.ogv")
+@onready var lipoma_video_resource = load("res://assets/videos/lipoma-sample.ogv")
 
-onready var videos = {
+@onready var videos = {
 	"pimple": pimple_video_resource,
 	"blackhead": blackhead_video_resource,
 	"cyst": cyst_video_resource,
 	"lipoma": lipoma_video_resource
 }
 
-onready var _video_player: VideoPlayer = $HBoxContainer/CenterContainer/VideoPlayer
-onready var _text: Label = $HBoxContainer/CenterContainer2/ScrollContainer/Label
+@onready var _video_player: VideoStreamPlayer = $HBoxContainer/CenterContainer/VideoStreamPlayer
+@onready var _text: Label = $HBoxContainer/CenterContainer2/ScrollContainer/Label
 
-export(VideoType) var tutorial_type
-export(bool) var debug = false
+@export var tutorial_type: VideoType
+@export var debug: bool = false
 
 func _ready():
 	if debug:
@@ -56,10 +56,15 @@ func set_lipoma_tutorial() -> void:
 	_set_video(videos["lipoma"])
 	_set_text("K_LIPOMA_TUTORIAL_TEXT")
 
-func _set_video(video: VideoStream) -> void:
+func _set_video(video) -> void:
+	if _video_player == null or video == null:
+		if _video_player:
+			_video_player.visible = false
+		return
 	if _video_player.stream != null:
 		_video_player.stop()
 	_video_player.stream = video
+	_video_player.visible = true
 	_video_player.play()
 
 func _set_text(tx: String) -> void:
@@ -67,4 +72,5 @@ func _set_text(tx: String) -> void:
 
 
 func _on_VideoPlayer_finished():
-	_video_player.play()
+	if _video_player and _video_player.stream:
+		_video_player.play()

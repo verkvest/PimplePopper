@@ -1,14 +1,14 @@
 [gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://protuberances/cyst.tscn" type="PackedScene" id=1]
-[ext_resource path="res://assets/cyst/5.png" type="Texture" id=2]
-[ext_resource path="res://assets/cyst/6.png" type="Texture" id=3]
-[ext_resource path="res://assets/cyst/0.png" type="Texture" id=4]
-[ext_resource path="res://assets/cyst/2.png" type="Texture" id=5]
-[ext_resource path="res://assets/cyst/1.png" type="Texture" id=6]
-[ext_resource path="res://assets/cyst/3.png" type="Texture" id=7]
-[ext_resource path="res://assets/cyst/4.png" type="Texture" id=8]
-[ext_resource path="res://assets/cyst/7.png" type="Texture" id=9]
+[ext_resource path="res://assets/cyst/5.png" type="Texture2D" id=2]
+[ext_resource path="res://assets/cyst/6.png" type="Texture2D" id=3]
+[ext_resource path="res://assets/cyst/0.png" type="Texture2D" id=4]
+[ext_resource path="res://assets/cyst/2.png" type="Texture2D" id=5]
+[ext_resource path="res://assets/cyst/1.png" type="Texture2D" id=6]
+[ext_resource path="res://assets/cyst/3.png" type="Texture2D" id=7]
+[ext_resource path="res://assets/cyst/4.png" type="Texture2D" id=8]
+[ext_resource path="res://assets/cyst/7.png" type="Texture2D" id=9]
 [ext_resource path="res://tools/circle_hint.tscn" type="PackedScene" id=10]
 [ext_resource path="res://bodyparts/cyst/WristCyst.gd" type="Script" id=11]
 
@@ -24,9 +24,9 @@ animations = [ {
 scale = Vector2( 1.0155, 1.0155 )
 script = ExtResource( 11 )
 
-[node name="sprites" type="AnimatedSprite" parent="."]
+[node name="sprites" type="AnimatedSprite2D" parent="."]
 scale = Vector2( 1.16, 1.16 )
-frames = SubResource( 1 )
+sprite_frames = SubResource( 1 )
 centered = false
 
 [node name="cyst" parent="." groups=[

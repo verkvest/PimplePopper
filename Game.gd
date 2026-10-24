@@ -1,14 +1,14 @@
 extends Node
-onready var yodo1mas = $Yodo1Mas
-onready var _animation = $AnimationPlayer
-onready var _finish_popup = $finish_game_popup
+var yodo1mas
+@onready var _animation = $AnimationPlayer
+@onready var _finish_popup = $finish_game_popup
 
-onready var debug_out = $CanvasLayer/Orange/DebugOut
+var debug_out: Label = Label.new()
 # shows what tools can be used with each body part.
-export(Dictionary) var tools_per_type:Dictionary
+@export var tools_per_type: Dictionary
 
-export(bool) var hint_hided: bool = true
-export(ButtonGroup) var _buttons: ButtonGroup
+@export var hint_hided: bool = true
+@export var _buttons: ButtonGroup
 var _hints: Array
 
 
@@ -21,12 +21,18 @@ var is_game_running = true
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	yodo1mas = get_node_or_null("Yodo1Mas")
+	if yodo1mas == null:
+		yodo1mas = get_node_or_null("/root/Yodo")
 	var nodes = get_tree().get_nodes_in_group("bodypart")
 	for bp in nodes:
-		bp.connect("bodypart_cleaned", self, "_on_bodypart_cleaned")
+		bp.connect("bodypart_cleaned", Callable(self, "_on_bodypart_cleaned"))
 	_animation.play("fade_out")
 	_hints = get_tree().get_nodes_in_group("hint")
 	hide_hints(hint_hided)
+	if has_node("UI"):
+		Mobile.fit($UI)
+		_add_touch_hint()
 #	yield(get_tree(), "idle_frame")
 	_disable_buttons(true)
 	
@@ -69,17 +75,17 @@ func _on_bodypart_cleaned() -> void:
 			break
 	
 	if is_all_completed:
-		ManagerPlayGames.playgames.achievementsUnlock('%s' % names[Global.type], true)
+		_unlock('%s' % names[Global.type])
 	
 	# checks for the time achievements -- !!
 	if game_time < 30.0:
-		ManagerPlayGames.playgames.achievementsUnlock('CgkI5ILm9-4PEAIQBA', true)
+		_unlock('CgkI5ILm9-4PEAIQBA')
 	if game_time > 180.0:
-		ManagerPlayGames.playgames.achievementsUnlock('CgkI5ILm9-4PEAIQBQ', true)
+		_unlock('CgkI5ILm9-4PEAIQBQ')
 	
 	#####################################################
 	
-	ManagerPlayGames.playgames.leaderboardsSubmitScore('CgkI5ILm9-4PEAIQCQ', 150)
+	_submit_score('CgkI5ILm9-4PEAIQCQ', 150)
 	
 	_finish_popup.start()
 
@@ -93,7 +99,7 @@ func _on_handkerchief_pressed():
 
 
 func _on_timeout() -> void:
-	get_tree().change_scene("res://menu/main_screen.tscn")
+	get_tree().change_scene_to_file("res://menu/new_main_screen.tscn")
 
 
 func _on_vapor_pressed():
@@ -132,7 +138,7 @@ func _on_back_pressed():
 
 func _on_animation_finished(anim: String) -> void:
 	if anim == "fade_in":
-		var error: int = get_tree().change_scene("res://menu/new_main_screen.tscn")
+		var error: int = get_tree().change_scene_to_file("res://menu/new_main_screen.tscn")
 		if error != OK:
 			print_debug("Error loading main screen. Code: ", error)
 	elif anim == "fade_out":
@@ -147,9 +153,38 @@ func _on_hint_pressed():
 
 func _on_anim_finished(finish_type):
 	if finish_type == _finish_popup.finish_type.WIN:
-		yodo1mas.show_interstitial_ad()
-		yield(yodo1mas, "interstitial_ad_closed")
-		get_tree().change_scene("res://menu/main_screen.tscn")
+		if yodo1mas and yodo1mas.has_method("is_interstitial_ad_loaded") and yodo1mas.is_interstitial_ad_loaded():
+			yodo1mas.show_interstitial_ad()
+			await yodo1mas.interstitial_ad_closed
+		get_tree().change_scene_to_file("res://menu/new_main_screen.tscn")
+
+
+func _add_touch_hint() -> void:
+	var label := Label.new()
+	label.name = "TouchHint"
+	label.text = "Pinch with two fingers, or press and hold with one finger."
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	label.add_theme_constant_override("outline_size", 6)
+	label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	label.offset_left = 16
+	label.offset_top = 8
+	label.offset_right = -16
+	label.offset_bottom = 52
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$UI.add_child(label)
+
+
+func _unlock(achievement_id: String) -> void:
+	if ManagerPlayGames.playgames:
+		ManagerPlayGames.playgames.achievementsUnlock(achievement_id, true)
+
+
+func _submit_score(board_id: String, score: int) -> void:
+	if ManagerPlayGames.playgames:
+		ManagerPlayGames.playgames.leaderboardsSubmitScore(board_id, score)
 
 func _input(event):
 	if event is InputEventScreenTouch:

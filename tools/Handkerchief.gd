@@ -1,7 +1,7 @@
 extends Node2D
 
 var finger_position: Vector2
-var space_state: Physics2DDirectSpaceState
+var space_state: PhysicsDirectSpaceState2D
 var _ui
 
 # Called when the node enters the scene tree for the first time.
@@ -11,6 +11,8 @@ func _ready():
 	_ui = get_tree().get_nodes_in_group("ui")[0]
 
 func _input(event):
+	if not (event is InputEventScreenTouch or event is InputEventScreenDrag):
+		return
 	if _ui.is_inside_container(event.position):
 		return
 	if event is InputEventScreenTouch:
@@ -21,7 +23,7 @@ func _input(event):
 			visible = false
 	if event is InputEventScreenDrag:
 		finger_position = event.position
-		var points: Array = space_state.intersect_point(event.position, 1, [], 0x7FFFFFFF, false, true)
+		var points: Array = Query2D.point(space_state, event.position, 0x7FFFFFFF, 8)
 		for point in points:
 			var collider = point.collider
 #			print (collider)
@@ -36,7 +38,7 @@ func _input(event):
 				collider.clean()
 			elif collider is PimpleNew:
 				collider.clean()
-	update()
+	queue_redraw()
 
 func _draw():
 	draw_circle(finger_position, 5, Color(1, 1, 1, 1))

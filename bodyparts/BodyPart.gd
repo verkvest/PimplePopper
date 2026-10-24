@@ -3,7 +3,7 @@ class_name BodyPart
 
 signal bodypart_cleaned
 
-export(bool) var debug: bool = false
+@export var debug: bool = false
 
 var protuberances: int = 0
 
@@ -13,7 +13,7 @@ func _ready():
 	var nodes = get_tree().get_nodes_in_group("protuberance")
 	protuberances = nodes.size()
 	for p in nodes:
-		var error = p.connect("protuberance_cleaned", self, "_on_protuberance_cleaned")
+		var error = p.connect("protuberance_cleaned", Callable(self, "_on_protuberance_cleaned"))
 		if error != OK:
 			breakpoint
 

@@ -9,18 +9,18 @@ func _ready():
 		
 		# These are all signals supported by the API
 		# You can drop some of these based on your needs
-		payment.connect("connected", self, "_on_connected") # No params
-		payment.connect("disconnected", self, "_on_disconnected") # No params
-		payment.connect("connect_error", self, "_on_connect_error") # Response ID (int), Debug message (string)
-		payment.connect("purchases_updated", self, "_on_purchases_updated") # Purchases (Dictionary[])
-		payment.connect("purchase_error", self, "_on_purchase_error") # Response ID (int), Debug message (string)
-		payment.connect("sku_details_query_completed", self, "_on_sku_details_query_completed") # SKUs (Dictionary[])
-		payment.connect("sku_details_query_error", self, "_on_sku_details_query_error") # Response ID (int), Debug message (string), Queried SKUs (string[])
-		payment.connect("purchase_acknowledged", self, "_on_purchase_acknowledged") # Purchase token (string)
-		payment.connect("purchase_acknowledgement_error", self, "_on_purchase_acknowledgement_error") # Response ID (int), Debug message (string), Purchase token (string)
-		payment.connect("purchase_consumed", self, "_on_purchase_consumed") # Purchase token (string)
-		payment.connect("purchase_consumption_error", self, "_on_purchase_consumption_error") # Response ID (int), Debug message (string), Purchase token (string)
-		payment.connect('query_purchases_response', self, '_on_query_purchases_response')
+		payment.connect("connected", Callable(self, "_on_connected")) # No params
+		payment.connect("disconnected", Callable(self, "_on_disconnected")) # No params
+		payment.connect("connect_error", Callable(self, "_on_connect_error")) # Response ID (int), Debug message (string)
+		payment.connect("purchases_updated", Callable(self, "_on_purchases_updated")) # Purchases (Dictionary[])
+		payment.connect("purchase_error", Callable(self, "_on_purchase_error")) # Response ID (int), Debug message (string)
+		payment.connect("sku_details_query_completed", Callable(self, "_on_sku_details_query_completed")) # SKUs (Dictionary[])
+		payment.connect("sku_details_query_error", Callable(self, "_on_sku_details_query_error")) # Response ID (int), Debug message (string), Queried SKUs (string[])
+		payment.connect("purchase_acknowledged", Callable(self, "_on_purchase_acknowledged")) # Purchase token (string)
+		payment.connect("purchase_acknowledgement_error", Callable(self, "_on_purchase_acknowledgement_error")) # Response ID (int), Debug message (string), Purchase token (string)
+		payment.connect("purchase_consumed", Callable(self, "_on_purchase_consumed")) # Purchase token (string)
+		payment.connect("purchase_consumption_error", Callable(self, "_on_purchase_consumption_error")) # Response ID (int), Debug message (string), Purchase token (string)
+		payment.connect('query_purchases_response', Callable(self, '_on_query_purchases_response'))
 		
 		payment.startConnection()
 	else:

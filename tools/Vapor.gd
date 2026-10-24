@@ -1,10 +1,10 @@
 extends Area2D
 
 
-onready var particles: Particles2D = $particles
-onready var _hint_sfx: AudioStreamPlayer2D = $hint_sfx
+@onready var particles: GPUParticles2D = $particles
+@onready var _hint_sfx: AudioStreamPlayer2D = $hint_sfx
 
-var _space: Physics2DDirectSpaceState
+var _space: PhysicsDirectSpaceState2D
 var _protuberances: Array = []
 var _ui: UI
 

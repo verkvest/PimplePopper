@@ -9,10 +9,10 @@ enum State {
 	CLEAN
 }
 
-onready var _hint = $circle_hint
+@onready var _hint = $circle_hint
 
-export(State) var state = State.NORMAL
-export(float) var max_pressure: float = 100.0
+@export var state: State = State.NORMAL
+@export var max_pressure: float = 100.0
 
 
 

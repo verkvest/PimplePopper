@@ -1,7 +1,7 @@
 class_name NeedleSuture extends Node2D
 
-onready var _line: Line2D = $Node/Line2D
-onready var _hint: AudioStreamPlayer2D = $hint_sfx
+@onready var _line: Line2D = $Node/Line2D
+@onready var _hint: AudioStreamPlayer2D = $hint_sfx
 
 var _touched: bool = false
 var _ui

@@ -12,18 +12,18 @@ enum State {
 	CLEANED
 }
 
-onready var rect_shape: RectangleShape2D = $CollisionShape2D.shape
-onready var _sheet: AnimatedSprite = $sheet
-onready var _circle_hint = $CollisionShape2D/circle_hint
+@onready var rect_shape: RectangleShape2D = $CollisionShape2D.shape
+@onready var _sheet: AnimatedSprite2D = $sheet
+@onready var _circle_hint = $CollisionShape2D/circle_hint
 
-export(State) var state = State.NORMAL
-export(int, 1, 100) var suture_points: int = 5
-export(float, 20, 100) var open_distance: float = 20
-export(int) var cut_frames: int = 5
-export(int, 10, 20) var anaesthetic_amount: int = 10
-export(float, 10, 200) var max_pressure: float = 190
-export(int) var pressure_frames: int = 4
-export(int) var suture_frames: int = 5
+@export var state: State = State.NORMAL
+@export var suture_points: int = 5 # (int, 1, 100)
+@export var open_distance: float = 20 # (float, 20, 100)
+@export var cut_frames: int = 5
+@export var anaesthetic_amount: int = 10 # (int, 10, 20)
+@export var max_pressure: float = 190 # (float, 10, 200)
+@export var pressure_frames: int = 4
+@export var suture_frames: int = 5
 
 var _cut_distance: float = 0
 var _distance: float = 0
@@ -33,7 +33,7 @@ var _cdistance: float = 0
 var _frames: int = 0
 
 func _ready():
-	_cut_distance = rect_shape.extents.y
+	_cut_distance = rect_shape.size.y * 0.5
 	_circle_hint.set_color(_circle_hint.white)
 
 
@@ -94,8 +94,8 @@ func clean() -> void:
 
 func _draw():
 	var shape: RectangleShape2D = $CollisionShape2D.shape
-	var initial_position: Vector2 = Vector2(0, -shape.extents.y + 5.0)
-	var y_steps: float = shape.extents.y / 5.0
+	var initial_position: Vector2 = Vector2(0, -shape.size.y * 0.5 + 5.0)
+	var y_steps: float = shape.size.y * 0.5 / 5.0
 	var pos: Vector2 = initial_position
 	for s in 10:
 		draw_circle(pos, 5, Color(1, 0, 0, 0.5))

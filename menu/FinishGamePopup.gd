@@ -8,10 +8,10 @@ enum finish_type {
 
 signal anim_finished(finish_type)
 
-onready var _animation: AnimationPlayer = $AnimationPlayer 
-onready var _texture: TextureRect = $CenterContainer/TextureRect
+@onready var _animation: AnimationPlayer = $AnimationPlayer 
+@onready var _texture: TextureRect = $CenterContainer/TextureRect
 
-export(Vector2) var initial_position: Vector2 = Vector2.ZERO
+@export var initial_position: Vector2 = Vector2.ZERO
 
 var _center_offset: Vector2
 var _finish_type: int = finish_type.NONE
@@ -25,12 +25,12 @@ func _ready():
 
 # Center image though the offset
 func _center_image() -> void:
-	var texture: Texture = _texture.texture
+	var texture: Texture2D = _texture.texture
 	var tex_size: Vector2 = texture.get_size()
-	_texture.rect_pivot_offset = tex_size / 2.0
+	_texture.pivot_offset = tex_size / 2.0
 	
-	var size_x: float = _texture.rect_size.x * _texture.rect_scale.x
-	var size_y: float = _texture.rect_size.y * _texture.rect_scale.y
+	var size_x: float = _texture.size.x * _texture.scale.x
+	var size_y: float = _texture.size.y * _texture.scale.y
 	
 	_center_offset = Vector2(size_x, size_y) / 2.0
 

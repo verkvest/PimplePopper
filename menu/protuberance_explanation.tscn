@@ -19,35 +19,35 @@ __meta__ = {
 }
 
 [node name="CenterContainer" type="CenterContainer" parent="HBoxContainer"]
-margin_right = 608.0
-margin_bottom = 600.0
+offset_right = 608.0
+offset_bottom = 600.0
 size_flags_horizontal = 3
 
-[node name="VideoPlayer" type="VideoPlayer" parent="HBoxContainer/CenterContainer"]
-margin_left = 154.0
-margin_top = 210.0
-margin_right = 454.0
-margin_bottom = 390.0
-rect_min_size = Vector2( 300, 180 )
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="HBoxContainer/CenterContainer"]
+offset_left = 154.0
+offset_top = 210.0
+offset_right = 454.0
+offset_bottom = 390.0
+custom_minimum_size = Vector2( 300, 180 )
 stream = ExtResource( 1 )
 
 [node name="CenterContainer2" type="CenterContainer" parent="HBoxContainer"]
-margin_left = 612.0
-margin_right = 1220.0
-margin_bottom = 600.0
+offset_left = 612.0
+offset_right = 1220.0
+offset_bottom = 600.0
 size_flags_horizontal = 3
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/CenterContainer2"]
-margin_left = 104.0
-margin_right = 504.0
-margin_bottom = 600.0
-rect_min_size = Vector2( 400, 600 )
+offset_left = 104.0
+offset_right = 504.0
+offset_bottom = 600.0
+custom_minimum_size = Vector2( 400, 600 )
 
 [node name="Label" type="Label" parent="HBoxContainer/CenterContainer2/ScrollContainer"]
-margin_right = 400.0
-margin_bottom = 600.0
-rect_min_size = Vector2( 400, 600 )
-custom_colors/font_color = Color( 0, 0, 0, 1 )
+offset_right = 400.0
+offset_bottom = 600.0
+custom_minimum_size = Vector2( 400, 600 )
+theme_override_colors/font_color = Color( 0, 0, 0, 1 )
 text = "In this section you need to remove some pimples from different parts of the body.
 
 In order to remove the pimples, you just need to enable the hand tool and use your finger to apply pressure to pop the pimple. Then when the pimple's popped, use a handkerchief to clean the are. You aren't going to be a good doctor if you left all those stuff there."
@@ -55,4 +55,4 @@ align = 1
 valign = 1
 autowrap = true
 
-[connection signal="finished" from="HBoxContainer/CenterContainer/VideoPlayer" to="." method="_on_VideoPlayer_finished"]
+[connection signal="finished" from="HBoxContainer/CenterContainer/VideoStreamPlayer" to="." method="_on_VideoPlayer_finished"]

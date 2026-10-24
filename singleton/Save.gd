@@ -7,11 +7,7 @@ var _data: Dictionary
 var _language_path: String
 
 func _ready():
-	if OS.has_feature("editor"):
-		print("Running on editor")
-		_language_path = RELEASE_LANGUAGE_PATH
-	else:
-		_language_path = RELEASE_LANGUAGE_PATH
+	_language_path = RELEASE_LANGUAGE_PATH
 	load_data()
 
 
@@ -20,16 +16,18 @@ func load_data() -> void:
 
 
 func save_language(lang: String) -> void:
-	var f: File = File.new()
-	if f.open(_language_path, File.WRITE) == OK:
-		f.store_string(lang)
-		f.close()
+	var f := FileAccess.open(_language_path, FileAccess.WRITE)
+	if f == null:
+		return
+	f.store_string(lang)
+	f.close()
 
 func get_language() -> String:
-	var f: File = File.new()
-	if f.open(_language_path, File.READ) == OK:
-		var t: String = f.get_as_text()
-		f.close()
-		return t
-	
-	return "de"
+	if FileAccess.file_exists(_language_path):
+		var f := FileAccess.open(_language_path, FileAccess.READ)
+		if f != null:
+			var t := f.get_as_text().strip_edges()
+			f.close()
+			if t != "":
+				return t
+	return "en"

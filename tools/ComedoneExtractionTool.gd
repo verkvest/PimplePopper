@@ -7,12 +7,13 @@ enum State {
 
 signal double_pressed
 
-onready var _sprite: Sprite = $tool/sprite
-onready var _tween: Tween = $tween
-onready var _sfx: AudioStreamPlayer2D = $hint_sfx
+@onready var _sprite: Sprite2D = $tool/sprite
+@onready var _sfx: AudioStreamPlayer2D = $hint_sfx
 
-export(float) var pressed_timeout: float = 0.3
-export(float) var max_down_distance: float = 20.0
+var _move: Tween
+
+@export var pressed_timeout: float = 0.3
+@export var max_down_distance: float = 20.0
 
 var _tool_initial_position: Vector2
 var _timeout: float
@@ -22,12 +23,12 @@ var _double_pressed: bool
 var _state = State.NORMAL
 
 var _initial_down_position: Vector2
-var _space: Physics2DDirectSpaceState
+var _space: PhysicsDirectSpaceState2D
 var _ui: UI
 
 func _ready():
 	set_process(false)
-	_tool_initial_position = Vector2(OS.window_size.x + 500, OS.window_size.y * 0.5)
+	_tool_initial_position = Vector2(Global.view_size().x + 500, Global.view_size().y * 0.5)
 	_sprite.position = _tool_initial_position
 	_space = get_world_2d().direct_space_state
 	_ui = get_tree().get_nodes_in_group("ui")[0]
@@ -40,6 +41,8 @@ func _process(delta):
 		_first_press = false
 
 func _input(event):
+	if not (event is InputEventScreenTouch or event is InputEventScreenDrag):
+		return
 	if _ui.is_inside_container(event.position):
 		return
 	
@@ -77,20 +80,22 @@ func position_tool(event: InputEvent) -> void:
 
 func bring_tool(destiny_position: Vector2) -> void:
 	set_process_input(false)
-	_tween.interpolate_property(_sprite, "position", _sprite.position, destiny_position, 1.0, Tween.TRANS_LINEAR)
-	_tween.start()
+	if _move:
+		_move.kill()
+	_move = create_tween()
+	_move.tween_property(_sprite, "position", destiny_position, 0.35)
+	_move.finished.connect(_on_tool_arrived, CONNECT_ONE_SHOT)
 
 
-func _on_tween_completed(object, _key):
-	if object == _sprite:
-		var collisions: Array = _space.intersect_point(object.position, 1, [], 1, false, true)
-		if collisions.size() != 0:
-			var collider = collisions[0].collider
-			if collider is Blackhead:
-				_sfx.play()
-				_protuberance = collider
-				_state = State.ON_BLACKHEAD
-		set_process_input(true)
+func _on_tool_arrived() -> void:
+	var collisions: Array = Query2D.point(_space, _sprite.position, 1, 1)
+	if collisions.size() != 0:
+		var collider = collisions[0].collider
+		if collider is Blackhead:
+			_sfx.play()
+			_protuberance = collider
+			_state = State.ON_BLACKHEAD
+	set_process_input(true)
 
 func disable() -> void:
 	set_process_input(false)
